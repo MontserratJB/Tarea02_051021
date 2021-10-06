@@ -1,0 +1,199 @@
+---
+title: "Tarea02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Carga de paquetes
+
+```{r carga-librerias, message = FALSE}
+# dplyr
+library(dplyr)
+
+# ggplot2
+library(ggplot2)
+
+# Carga de graphics
+library(graphics)
+
+# Carga de plotly
+library(plotly)
+
+# Opcionalmente, puede cargarse toda la colección tidyverse
+library(tidyverse)
+
+# Carga de hrbrthemes
+library(hrbrthemes)
+```
+
+
+## Carga de datos
+
+```{r carga-datos, message = FALSE}
+rios <-
+  read.csv(file = 'https://raw.githubusercontent.com/tpb728O-programaciongeoespacialr/2021ii/main/datos/hidrologia/fdc/fdc.csv')
+
+covid <- 
+  read.csv(
+    file='https://raw.githubusercontent.com/tpb728O-programaciongeoespacialr/2021ii/main/datos/minsalud/covid/ultimafecha_CSV_GENERAL.csv', 
+    sep = ","
+  )
+```
+
+
+### Datos para gráfico de Ríos
+```{r sumarize}
+# Marco de datos para Gráfico de Ríos
+Rios_x_mes <-
+  rios %>%
+  select(Tiempo, Pandora.mm..637km2., Banano.mm..90km2.) %>%
+  rename(FECHA = Tiempo, 
+         pandora = Pandora.mm..637km2.,
+         banano = Banano.mm..90km2.) %>%
+  mutate(FECHA = as.Date(FECHA, format = "%d/%m/%Y")) %>%
+  group_by(MES = format(FECHA,"%m")) %>%
+  summarise(PANDORA = mean(pandora), BANANO = mean(banano))
+
+# Despliegue del data frame con los resultados
+Rios_x_mes
+```
+```{r pandora-banano}
+# Separar tablas
+
+p <-
+  Rios_x_mes %>%
+  select(MES, PANDORA) %>%
+  rename(CAUDAL = PANDORA) %>%
+  add_column(rio = "pandora_")
+
+p
+
+b <-
+  Rios_x_mes %>%
+  select(MES, BANANO) %>%
+  rename(CAUDAL = BANANO) %>%
+  add_column(rio = "banano_")
+b
+
+# Suma de tablas
+TABLAS <-
+  rbind(p,b)
+               
+TABLAS
+```
+```{r barras-apiladas01}
+# Gráfico de barras apiladas
+ggplot(
+  TABLAS, 
+  aes(x = MES, y = CAUDAL, fill = rio)
+) +
+  geom_col(position = "dodge") +
+  coord_flip()
+```
+
+
+### select
+```{r select}
+# Selección, renombramiento y conversión de columnas
+covid_columnas_seleccionadas <-
+  covid %>%
+  select(FECHA, muj_posi, hom_posi) %>%
+  rename(
+    fecha = FECHA,
+    positivos_mujeres = muj_posi,
+    positivos_hombres = hom_posi
+  ) %>%
+  mutate(fecha = as.Date(fecha, format = "%d/%m/%Y"))
+
+# Despliegue de una muestra aleatoria de los registros
+slice_sample(covid_columnas_seleccionadas, n = 10)
+```
+
+### Casos nuevos de Covid
+```{r filtrado}
+# Selección, renombramiento, conversión de columnas y filtrado
+covid_filtrado <-
+  covid %>%
+  select(FECHA, nue_posi) %>%
+  rename(fecha = FECHA, positivos_nuevos = nue_posi) %>%
+  mutate(fecha = as.Date(fecha, format = "%d/%m/%Y")) %>%
+  group_by(mes = format(fecha,"%m")) %>%
+  sumarize(suma_nuevos = sum(positivos_nuevos))
+    
+# Despliegue del data frame con los resultados
+covid_filtrado
+
+
+```
+
+### arrange
+```{r arrange}
+# Selección, renombramiento, filtrado y conversión de columnas
+covid_filtrado_ordenado_x_positivos_nuevos <-
+  covid %>%
+  select(FECHA, nue_posi) %>%
+  rename(fecha = FECHA, positivos_nuevos = nue_posi) %>%
+  mutate(fecha = as.Date(fecha, format = "%d/%m/%Y")) %>%
+  filter(positivos_nuevos >= 0) %>%
+  arrange(desc(positivos_nuevos))
+
+# Despliegue del data frame con los resultados
+covid_filtrado_ordenado_x_positivos_nuevos
+```
+# Histograma de casos nuevos de Covid19
+```{r}
+ggplot(covid_filtrado_ordenado_x_positivos_nuevos, aes(x = fecha)) +
+  geom_histogram(binwidth = 100,
+                 color = "red",
+                 fill = "white") +
+  ggtitle("Distribución de Casos Nuevos de Covid19") +
+  xlab("Fecha") +
+  ylab("Casos Nuevos") +
+  theme_ipsum()
+```
+### Nuevos casos de Covid por mes
+```{r sumarize}
+# Selección, renombramiento, filtrado y conversión de columnas
+covid_positivos_nuevos_sumarizado_x_mes <-
+  covid %>%
+  select(FECHA, nue_posi) %>%
+  rename(fecha = FECHA, positivos_nuevos = nue_posi) %>%
+  mutate(fecha = as.Date(fecha, format = "%d/%m/%Y")) %>%
+  group_by(anio = format(fecha,"%Y"), mes = format(fecha,"%m")) %>%
+  filter(anio == 2021) %>%
+  summarise(suma_positivos = sum(positivos_nuevos))
+
+# Despliegue del data frame con los resultados
+covid_positivos_nuevos_sumarizado_x_mes
+```
+
+### sumarize
+```{r sumarize}
+# Selección, renombramiento, filtrado y conversión de columnas
+covid_positivos_nuevos_sumarizado_x_mes <-
+  covid %>%
+  select(FECHA, nue_posi) %>%
+  rename(fecha = FECHA, positivos_nuevos = nue_posi) %>%
+  mutate(fecha = as.Date(fecha, format = "%d/%m/%Y")) %>%
+  group_by(anio = format(fecha,"%Y"), mes = format(fecha,"%m")) %>%
+  summarise(suma_positivos = sum(positivos_nuevos))
+
+# Despliegue del data frame con los resultados
+covid_positivos_nuevos_sumarizado_x_mes
+```
+
+```{r tabla-histograma}
+# Concatenar campos para fecha
+covid_nuevos_fecha <-
+  unite(covid_positivos_nuevos_sumarizado_x_mes, fechas,c(1:2), remove = TRUE)
+
+covid_nuevos_fecha
+```
+
+
+
+
+
