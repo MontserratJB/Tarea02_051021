@@ -93,45 +93,9 @@ ggplot(
   geom_col(position = "dodge") +
   coord_flip()
 ```
-
-
-### select
-```{r select}
-# Selección, renombramiento y conversión de columnas
-covid_columnas_seleccionadas <-
-  covid %>%
-  select(FECHA, muj_posi, hom_posi) %>%
-  rename(
-    fecha = FECHA,
-    positivos_mujeres = muj_posi,
-    positivos_hombres = hom_posi
-  ) %>%
-  mutate(fecha = as.Date(fecha, format = "%d/%m/%Y"))
-
-# Despliegue de una muestra aleatoria de los registros
-slice_sample(covid_columnas_seleccionadas, n = 10)
-```
-
-### Casos nuevos de Covid
-```{r filtrado}
-# Selección, renombramiento, conversión de columnas y filtrado
-covid_filtrado <-
-  covid %>%
-  select(FECHA, nue_posi) %>%
-  rename(fecha = FECHA, positivos_nuevos = nue_posi) %>%
-  mutate(fecha = as.Date(fecha, format = "%d/%m/%Y")) %>%
-  group_by(mes = format(fecha,"%m")) %>%
-  sumarize(suma_nuevos = sum(positivos_nuevos))
-    
-# Despliegue del data frame con los resultados
-covid_filtrado
-
-
-```
-
-### arrange
+### Histograma
 ```{r arrange}
-# Selección, renombramiento, filtrado y conversión de columnas
+# Casos nuevos de covid19
 covid_filtrado_ordenado_x_positivos_nuevos <-
   covid %>%
   select(FECHA, nue_posi) %>%
@@ -154,45 +118,64 @@ ggplot(covid_filtrado_ordenado_x_positivos_nuevos, aes(x = fecha)) +
   ylab("Casos Nuevos") +
   theme_ipsum()
 ```
-### Nuevos casos de Covid por mes
-```{r sumarize}
-# Selección, renombramiento, filtrado y conversión de columnas
-covid_positivos_nuevos_sumarizado_x_mes <-
+### Grafico de casos de fallecidos por Covid19
+```{r fallecidos}
+# Casos fallecidos de covid19
+covid_fallecidas_muj <-
   covid %>%
-  select(FECHA, nue_posi) %>%
-  rename(fecha = FECHA, positivos_nuevos = nue_posi) %>%
+  select(FECHA, muj_fall) %>%
+  rename(fecha = FECHA, mujeres_fallecidas = muj_fall) %>%
   mutate(fecha = as.Date(fecha, format = "%d/%m/%Y")) %>%
-  group_by(anio = format(fecha,"%Y"), mes = format(fecha,"%m")) %>%
-  filter(anio == 2021) %>%
-  summarise(suma_positivos = sum(positivos_nuevos))
-
+  group_by(MES = format(fecha,"%m")) %>%
+  summarise(casos_mes = mean(mujeres_fallecidas))
+  
 # Despliegue del data frame con los resultados
-covid_positivos_nuevos_sumarizado_x_mes
-```
+covid_fallecidas_muj
 
-### sumarize
-```{r sumarize}
-# Selección, renombramiento, filtrado y conversión de columnas
-covid_positivos_nuevos_sumarizado_x_mes <-
+# Casos fallecidos de covid19
+covid_fallecidos_hom <-
   covid %>%
-  select(FECHA, nue_posi) %>%
-  rename(fecha = FECHA, positivos_nuevos = nue_posi) %>%
+  select(FECHA, hom_fall) %>%
+  rename(fecha = FECHA, hombres_fallecidos = hom_fall) %>%
   mutate(fecha = as.Date(fecha, format = "%d/%m/%Y")) %>%
-  group_by(anio = format(fecha,"%Y"), mes = format(fecha,"%m")) %>%
-  summarise(suma_positivos = sum(positivos_nuevos))
-
+  group_by(MES = format(fecha,"%m")) %>%
+  summarise(casos_mes = mean(hombres_fallecidos))
+  
 # Despliegue del data frame con los resultados
-covid_positivos_nuevos_sumarizado_x_mes
+covid_fallecidos_hom
+
+# Separar tablas
+muj <-
+  covid_fallecidas_muj %>%
+  select(MES, casos_mes) %>%
+  rename(Casos = casos_mes) %>%
+  add_column(genero = "mujeres_")
+
+muj
+
+hom <-
+  covid_fallecidos_hom %>%
+  select(MES, casos_mes) %>%
+  rename(Casos = casos_mes) %>%
+  add_column(genero = "hombres_")
+hom
+
+# Suma de tablas
+fallecidos <-
+  rbind(muj,hom)
+               
+fallecidos
 ```
-
-```{r tabla-histograma}
-# Concatenar campos para fecha
-covid_nuevos_fecha <-
-  unite(covid_positivos_nuevos_sumarizado_x_mes, fechas,c(1:2), remove = TRUE)
-
-covid_nuevos_fecha
+### Gráfico de barras agrupadas
+```{r graf-fallecidos}
+# Gráfico de barras apiladas
+ggplot(
+  fallecidos, 
+  aes(x = MES, y = Casos, fill = genero)
+) +
+  geom_col(position = "dodge") +
+  coord_flip()
 ```
-
 
 
 
