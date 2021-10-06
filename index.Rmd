@@ -45,6 +45,7 @@ covid <-
 
 
 ### Datos para gráfico de Ríos
+
 ```{r sumarize}
 # Marco de datos para Gráfico de Ríos
 Rios_x_mes <-
@@ -93,7 +94,10 @@ ggplot(
   geom_col(position = "dodge") +
   coord_flip()
 ```
+
+
 ### Histograma
+
 ```{r arrange}
 # Casos nuevos de covid19
 covid_filtrado_ordenado_x_positivos_nuevos <-
@@ -107,7 +111,10 @@ covid_filtrado_ordenado_x_positivos_nuevos <-
 # Despliegue del data frame con los resultados
 covid_filtrado_ordenado_x_positivos_nuevos
 ```
-# Histograma de casos nuevos de Covid19
+
+
+### Histograma de casos nuevos de Covid19
+
 ```{r}
 ggplot(covid_filtrado_ordenado_x_positivos_nuevos, aes(x = fecha)) +
   geom_histogram(binwidth = 100,
@@ -118,7 +125,9 @@ ggplot(covid_filtrado_ordenado_x_positivos_nuevos, aes(x = fecha)) +
   ylab("Casos Nuevos") +
   theme_ipsum()
 ```
+
 ### Grafico de casos de fallecidos por Covid19
+
 ```{r fallecidos}
 # Casos fallecidos de covid19
 covid_fallecidas_muj <-
@@ -166,7 +175,10 @@ fallecidos <-
                
 fallecidos
 ```
+
+
 ### Gráfico de barras agrupadas
+
 ```{r graf-fallecidos}
 # Gráfico de barras apiladas
 ggplot(
